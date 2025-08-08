@@ -170,7 +170,8 @@ Epoch 10/10
 
 #### Training Result Visualization
 
-*Paste the training/validation accuracy and loss plots for the custom model here.*
+<img width="1010" height="393" alt="image" src="https://github.com/user-attachments/assets/76188ea3-c476-45d4-80a9-aa1ce00c2ef3" />
+
 
 ---
 
@@ -195,7 +196,7 @@ Test Accuracy: 0.9366
 
 #### Training Result Visualization
 
-*Paste the training/validation accuracy and loss plots for the ResNet50 transfer learning model here.*
+<img width="1001" height="393" alt="image" src="https://github.com/user-attachments/assets/2079bbcb-9a24-4097-9249-b5b52310705e" />
 
 ---
 
