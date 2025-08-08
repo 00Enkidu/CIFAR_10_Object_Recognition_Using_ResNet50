@@ -168,7 +168,7 @@ Epoch 10/10
 - **Validation Accuracy:** Improved from 28% to ~36%.
 - **Loss:** Gradual decrease, but overall accuracy is low.
 
-#### Training Result Visualization
+#### Training Result Visualization (Figure 1)
 
 <img width="1010" height="393" alt="image" src="https://github.com/user-attachments/assets/76188ea3-c476-45d4-80a9-aa1ce00c2ef3" />
 
@@ -194,7 +194,7 @@ Test Accuracy: 0.9366
 - **Transfer learning with ResNet50 achieves over 93% validation and test accuracy.**
 - **Significantly outperforms the baseline custom model, confirming the power of transfer learning in deep learning workflows.**
 
-#### Training Result Visualization
+#### Training Result Visualization (Figure 2)
 
 <img width="1001" height="393" alt="image" src="https://github.com/user-attachments/assets/2079bbcb-9a24-4097-9249-b5b52310705e" />
 
@@ -202,8 +202,8 @@ Test Accuracy: 0.9366
 
 ## 5. Conclusion
 
-- The baseline custom model shows limited learning capacity on CIFAR-10, with validation accuracy peaking at around 36%. The training and validation accuracy/loss curves (see above) indicate the model struggles to fit the complexity of the dataset ([see visualization](2)).
-- In contrast, the ResNet50-based transfer learning model achieves rapid and significant improvements, reaching over 93% validation and test accuracy within 10 epochs. Its learning curves show strong, steady improvements in both accuracy and loss ([see visualization](3)).
+- The baseline custom model shows limited learning capacity on CIFAR-10, with validation accuracy peaking at around 36%. The training and validation accuracy/loss curves indicate the model struggles to fit the complexity of the dataset (See above Figure 1).
+- In contrast, the ResNet50-based transfer learning model achieves rapid and significant improvements, reaching over 93% validation and test accuracy within 10 epochs. Its learning curves show strong, steady improvements in both accuracy and loss (See above Figure 2).
 - These results visually and quantitatively demonstrate the power of transfer learning: leveraging pre-trained models like ResNet50 dramatically boosts performance on challenging image classification tasks, especially when compared to simple custom architectures.
 
 ---
