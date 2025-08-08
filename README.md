@@ -202,9 +202,9 @@ Test Accuracy: 0.9366
 
 ## 5. Conclusion
 
-- The baseline custom model achieves limited performance on CIFAR-10, with validation accuracy plateauing around 36%.
-- Transfer learning using ResNet50 dramatically improves performance, achieving validation and test accuracy above 93%.
-- This demonstrates the power of transfer learning for image classification tasks, especially when data or model capacity is limited.
+- The baseline custom model shows limited learning capacity on CIFAR-10, with validation accuracy peaking at around 36%. The training and validation accuracy/loss curves (see above) indicate the model struggles to fit the complexity of the dataset ([see visualization](2)).
+- In contrast, the ResNet50-based transfer learning model achieves rapid and significant improvements, reaching over 93% validation and test accuracy within 10 epochs. Its learning curves show strong, steady improvements in both accuracy and loss ([see visualization](3)).
+- These results visually and quantitatively demonstrate the power of transfer learning: leveraging pre-trained models like ResNet50 dramatically boosts performance on challenging image classification tasks, especially when compared to simple custom architectures.
 
 ---
 
