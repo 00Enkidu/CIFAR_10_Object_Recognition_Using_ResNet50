@@ -1,12 +1,13 @@
 # CIFAR-10 Object Recognition Using ResNet50
 
-This is a deep learning project using transfer learning for image classification. In this project, the transferred model is **ResNet50**, a powerful convolutional neural network pre-trained on large-scale image datasets. We leverage the feature extraction capabilities of ResNet50 and apply it to the CIFAR-10 dataset, demonstrating the effectiveness of transfer learning in computer vision tasks.
+This is a deep learning project using both a custom neural network and transfer learning for image classification. The highlight of this project is the use of **ResNet50**, a powerful convolutional neural network pre-trained on large-scale image datasets, for transfer learning. We demonstrate the effectiveness of transfer learning by comparing it to a custom model built from scratch, applied to the CIFAR-10 dataset.
 
 ---
 
 ## 1. Dataset Introduction
 
-This project uses the **CIFAR-10** dataset, which is a widely used benchmark in computer vision for image classification. The CIFAR-10 dataset consists of 60,000 32x32 color images in 10 different classes, with 6,000 images per class. There are 50,000 training images and 10,000 test images.
+This project uses the **CIFAR-10** dataset, a widely used benchmark in computer vision for image classification. The CIFAR-10 dataset consists of 60,000 32x32 color images in 10 different classes, with 6,000 images per class. There are 50,000 training images and 10,000 test images.
+
 The label classes in the dataset are:
 
 - airplane 
@@ -52,82 +53,157 @@ def predict_image(image_path):
 
 ---
 
-## 3. Model Architecture
+## 3. Model Architectures
 
-### a. ResNet50 Introduction
+This project evaluates two main architectures:
 
-**ResNet50** is a deep convolutional neural network that is 50 layers deep. It is a commonly used backbone for feature extraction in computer vision tasks. The key innovation of ResNet models is the use of **residual connections**, which help alleviate the vanishing gradient problem and allow for the training of much deeper networks.
+### a. Custom Model (Baseline)
 
-- **Key features of ResNet50:**
-  - 50 convolutional layers
-  - Residual blocks with skip connections
-  - Strong performance on image classification benchmarks
+The first model is a simple custom neural network, serving as a baseline for comparison. Its performance on CIFAR-10 is limited.
 
-### b. Custom Model for CIFAR-10
-
-After extracting features using ResNet50 (or for a simple demonstration), a custom neural network is built for classification on CIFAR-10. The architecture is as follows:
-
+**Model Structure (with detailed comments):**
 ```python
 num_of_classes = 10
 
-# Setting up layers of neural network
 model = keras.Sequential([
-    keras.Input(shape=(32,32,3)),
+    # The input layer expects images of shape 32x32 pixels with 3 color channels (RGB)
+    keras.Input(shape=(32, 32, 3)),
+    
+    # Flatten the 3D image tensor into a 1D vector (32*32*3 = 3072 features)
     keras.layers.Flatten(),
+    
+    # First dense (fully connected) layer with 64 neurons and ReLU activation
     keras.layers.Dense(64, activation='relu'),
+    
+    # Second dense layer with 64 neurons and ReLU activation
     keras.layers.Dense(64, activation='relu'),
+    
+    # Output layer with `num_of_classes` neurons (10 for CIFAR-10), softmax activation for probability output
     keras.layers.Dense(num_of_classes, activation='softmax')
 ])
 ```
 
 - **Input:** 32x32x3 color images
-- **Structure:** Flatten layer → Dense(64, relu) → Dense(64, relu) → Dense(10, softmax)
+- **Structure:** Flatten → Dense(64, relu) → Dense(64, relu) → Dense(10, softmax)
 - **Output:** Probability distribution over the 10 CIFAR-10 classes
+
+---
+
+### b. Transfer Learning Model (ResNet50)
+
+For higher performance, we apply transfer learning using **ResNet50** pre-trained on ImageNet. The model uses ResNet50 as a convolutional base, followed by custom dense layers for classification.
+
+**Model Structure (with detailed comments):**
+```python
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras import layers, models, optimizers
+
+convolutional_base = ResNet50(
+    weights='imagenet',          # Use weights pre-trained on ImageNet
+    include_top=False,           # Exclude the fully-connected output layer
+    input_shape=(256, 256, 3)    # Input images resized to 256x256 RGB
+)
+
+model = models.Sequential()
+# Upsample CIFAR-10 images (32x32) to match ResNet50 input size (256x256)
+model.add(layers.UpSampling2D((2, 2)))  # 32x32 → 64x64
+model.add(layers.UpSampling2D((2, 2)))  # 64x64 → 128x128
+model.add(layers.UpSampling2D((2, 2)))  # 128x128 → 256x256
+
+# Add the pre-trained ResNet50 convolutional base
+model.add(convolutional_base)
+
+# Flatten the output of the convolutional base
+model.add(layers.Flatten())
+
+# Normalize the activations to improve training stability
+model.add(layers.BatchNormalization())
+
+# First dense layer with 128 units and ReLU activation
+model.add(layers.Dense(128, activation='relu'))
+# Dropout to reduce overfitting
+model.add(layers.Dropout(0.5))
+
+# Batch normalization again after dropout
+model.add(layers.BatchNormalization())
+
+# Second dense layer with 64 units and ReLU activation
+model.add(layers.Dense(64, activation='relu'))
+# Another dropout layer for regularization
+model.add(layers.Dropout(0.5))
+
+# Batch normalization before the output
+model.add(layers.BatchNormalization())
+
+# Output layer for classification: 10 units (CIFAR-10), softmax for class probabilities
+model.add(layers.Dense(num_of_classes, activation='softmax'))
+
+# Compile the model with a low learning rate suitable for transfer learning
+model.compile(
+    optimizer=optimizers.RMSprop(learning_rate=2e-5),
+    loss='sparse_categorical_crossentropy',
+    metrics=['acc']
+)
+# Training example:
+# history = model.fit(X_train_scale, Y_train, validation_split=0.1, epochs=10)
+```
 
 ---
 
 ## 4. Model Training Results and Analysis
 
-The following are the training results for 10 epochs. The model shows gradual improvement in both training and validation accuracy:
+### a. Custom Model Training Results
 
 ```
 Epoch 1/10
 1125/1125 ━━━━━━━━━━━━━━━━━━━━ 7s 4ms/step - acc: 0.2106 - loss: 2.0837 - val_acc: 0.2855 - val_loss: 1.8938
-Epoch 2/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3092 - loss: 1.8752 - val_acc: 0.3122 - val_loss: 1.8714
-Epoch 3/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3311 - loss: 1.8305 - val_acc: 0.3260 - val_loss: 1.8217
-Epoch 4/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3393 - loss: 1.8016 - val_acc: 0.3475 - val_loss: 1.8008
-Epoch 5/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 5s 3ms/step - acc: 0.3493 - loss: 1.7828 - val_acc: 0.3577 - val_loss: 1.7821
-Epoch 6/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3572 - loss: 1.7682 - val_acc: 0.3515 - val_loss: 1.8015
-Epoch 7/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3617 - loss: 1.7447 - val_acc: 0.3587 - val_loss: 1.7720
-Epoch 8/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 4s 3ms/step - acc: 0.3606 - loss: 1.7457 - val_acc: 0.3465 - val_loss: 1.7978
-Epoch 9/10
-1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3727 - loss: 1.7285 - val_acc: 0.3632 - val_loss: 1.7611
+...
 Epoch 10/10
 1125/1125 ━━━━━━━━━━━━━━━━━━━━ 3s 3ms/step - acc: 0.3748 - loss: 1.7265 - val_acc: 0.3550 - val_loss: 1.7572
 ```
 
-### Analysis
+#### Analysis
 
 - **Training Accuracy:** Improved from 21% to ~37% over 10 epochs.
 - **Validation Accuracy:** Improved from 28% to ~36%.
-- **Loss:** Both training and validation loss gradually decreased, indicating the model is learning but may benefit from further tuning and regularization.
+- **Loss:** Gradual decrease, but overall accuracy is low.
 
-## 5. Training Result Visualization
+#### Training Result Visualization
 
-Below are the training and validation accuracy and loss curves for the model over 10 epochs:
+*Paste the training/validation accuracy and loss plots for the custom model here.*
 
-<img width="1010" height="393" alt="image" src="https://github.com/user-attachments/assets/2f8aa239-6b8c-4de9-97c8-a2e74fbd9b70" />
+---
 
-- The left plot shows the trend of training and validation accuracy.
-- The right plot shows the trend of training and validation loss.
-- These visualizations illustrate that the model is learning (accuracy increases, loss decreases), but also suggest some possible overfitting or underfitting, as the validation accuracy does not increase as quickly as the training accuracy.
+### b. ResNet50 Transfer Learning Model Training Results
+
+```
+Epoch 1/10
+1125/1125 ━━━━━━━━━━━━━━━━━━━━ 445s 348ms/step - acc: 0.3149 - loss: 2.1003 - val_acc: 0.7548 - val_loss: 0.9065
+...
+Epoch 10/10
+1125/1125 ━━━━━━━━━━━━━━━━━━━━ 442s 347ms/step - acc: 0.9733 - loss: 0.1730 - val_acc: 0.9405 - val_loss: 0.2253
+
+313/313 ━━━━━━━━━━━━━━━━━━━━ 40s 113ms/step - acc: 0.9370 - loss: 0.2273
+Test Loss: 0.2323
+Test Accuracy: 0.9366
+```
+
+#### Analysis
+
+- **Transfer learning with ResNet50 achieves over 93% validation and test accuracy.**
+- **Significantly outperforms the baseline custom model, confirming the power of transfer learning in deep learning workflows.**
+
+#### Training Result Visualization
+
+*Paste the training/validation accuracy and loss plots for the ResNet50 transfer learning model here.*
+
+---
+
+## 5. Conclusion
+
+- The baseline custom model achieves limited performance on CIFAR-10, with validation accuracy plateauing around 36%.
+- Transfer learning using ResNet50 dramatically improves performance, achieving validation and test accuracy above 93%.
+- This demonstrates the power of transfer learning for image classification tasks, especially when data or model capacity is limited.
 
 ---
 
